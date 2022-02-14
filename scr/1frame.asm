@@ -31,7 +31,6 @@ cmp bx, scrHigh + 1
 jb chooseString
 call endian
 
-
 ; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ; #brief 
 ; set one string in videosegment as up-border
@@ -56,7 +55,6 @@ cmp cx, marginLeft
 ja horizontalBorder
 je leftUpCorner
 jb setBlack
-
 backUp:
 
 mov es:[di], ax
@@ -127,7 +125,6 @@ cmp cx, marginLeft
 ja setHborderD
 je setLDcorner
 jb setBlackD
-
 backDown:
 
 mov es:[di], ax
@@ -154,7 +151,6 @@ setBlackD:
 mov ax, styleStr[0d]
 call backDown
 
-
 ; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ; #brief 
 ; set one string in videosegment as window-string
@@ -180,7 +176,6 @@ cmp cx, marginLeft
 ja setWindow
 je verticalBorder
 jb setBlackW
-
 backWindow:
 
 mov es:[di], ax
