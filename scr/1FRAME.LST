@@ -1,0 +1,298 @@
+Turbo Assembler	 Version 4.1	    02/14/22 03:31:04	    Page 1
+1frame.asm
+
+
+
+      1	0000			     .model tiny
+      2
+      3	0000			     .code
+      4				     org 100h
+      5
+      6	      =0050		     scrLen	 = 80d
+      7	      =0018		     scrHigh	 = 24d
+      8	      =0005		     marginTop	 =  5d
+      9	      =0004		     marginDown	 =  4d
+     10	      =0007		     marginLeft	 =  7d
+     11	      =0007		     marginRight =  7d
+     12
+     13	0100			     start:
+     14	0100  BB B800		     mov bx, 0b800h
+     15	0103  8E C3		     mov es, bx
+     16
+     17	0105  33 FF		     xor di, di
+     18	0107  33 DB		     xor bx, bx
+     19	0109  E8 0009		     call verticleLoop
+     20
+     21	010C			     endian:
+     22	010C  33 C0		     xor ax, ax
+     23	010E  CD 16		     int 16h
+     24	0110  B8 4C00		     mov ax, 4c00h
+     25	0113  CD 21		     int 21h
+     26
+     27	0115			     verticleLoop:				     ; #cycle for drow
+     28	0115  33 C9		     xor cx, cx
+     29	0117  83 C3 01		     add bx, 1
+     30	011A  83 FB 19		     cmp bx, scrHigh + 1
+     31	011D  72 36		     jb	chooseString
+     32	011F  E8 FFEA		     call endian
+     33
+     34
+     35				     ; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     36				     ; #brief
+     37				     ; set one string in videosegment as up-border
+     38				     ;
+     39				     ; #input
+     40				     ; ax - color
+     41				     ; bx - string-index in video segment
+     42				     ; cx - counter
+     43				     ; es - ptr	to video segment
+     44				     ; di - index in string (in	video segment)
+     45				     ;
+     46				     ; #destroy	list
+     47				     ; ax, bx, cx, es, di
+     48				     ; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     49
+     50	0122			     upString proc
+     51	0122  83 F9 49		     cmp cx, scrLen - marginRight
+     52	0125  77 1C		     ja	setBlack
+     53	0127  74 50		     je	setRUcorner
+     54
+     55	0129  83 F9 07		     cmp cx, marginLeft
+     56	012C  77 1B		     ja	horizontalBorder
+     57	012E  74 1F		     je	leftUpCorner
+Turbo Assembler	 Version 4.1	    02/14/22 03:31:04	    Page 2
+1frame.asm
+
+
+
+     58	0130  72 11		     jb	setBlack
+     59
+     60	0132			     backUp:
+     61
+     62	0132  26: 89 05		     mov es:[di], ax
+     63	0135  83 C7 02		     add di, 2d
+     64	0138  83 C1 01		     add cx, 1
+     65	013B  83 F9 50		     cmp cx, scrLen
+     66	013E  72 E2		     jb	upString
+     67	0140  E8 FFD2		     call verticleLoop
+     68	0143			     endp
+     69
+     70	0143			     setBlack:
+     71	0143  A1 0000r		     mov ax, styleStr[0d]
+     72	0146  E8 FFE9		     call backUp
+     73
+     74	0149			     horizontalBorder:
+     75	0149  A1 0004r		     mov ax, styleStr[4h]
+     76	014C  E8 FFE3		     call backUp
+     77
+     78	014F			     leftUpCorner:
+     79	014F  A1 0008r		     mov ax, styleStr[8d]
+     80	0152  E8 FFDD		     call backUp
+     81
+     82	0155			     chooseString:				     ; control window's	content
+     83	0155  83 FB 14		     cmp bx, scrHigh - marginDown
+     84	0158  77 0B		     ja	emptyString
+     85	015A  74 23		     je	downString
+     86
+     87	015C  83 FB 05		     cmp bx, marginTop
+     88	015F  77 57		     ja	windowSting
+     89	0161  74 BF		     je	upString
+     90	0163  72 00		     jb	emptyString
+     91
+     92	0165			     emptyString proc
+     93	0165  A1 0000r		     mov ax, styleStr[0d]
+     94	0168  26: 89 05		     mov es:[di], ax
+     95	016B  83 C7 02		     add di, 2d
+     96	016E  83 C1 01		     add cx, 1
+     97	0171  83 F9 50		     cmp cx, scrLen
+     98	0174  72 EF		     jb	emptyString
+     99	0176  E8 FF9C		     call verticleLoop
+    100	0179			     endp
+    101
+    102	0179			     setRUcorner:
+    103	0179  A1 000Ar		     mov ax, styleStr[10d]
+    104	017C  E8 0010		     call backDown
+    105
+    106				     ; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    107				     ; #brief
+    108				     ; set one string in videosegment as down-border
+    109				     ;
+    110				     ; #input
+    111				     ; ax - color
+    112				     ; bx - string-index in video segment
+    113				     ; cx - counter
+    114				     ; es - ptr	to video segment
+Turbo Assembler	 Version 4.1	    02/14/22 03:31:04	    Page 3
+1frame.asm
+
+
+
+    115				     ; di - index in string (in	video segment)
+    116				     ;
+    117				     ; #destroy	list
+    118				     ; ax, bx, cx, es, di
+    119				     ; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    120
+    121	017F			     downString	proc
+    122	017F  83 F9 49		     cmp cx, scrLen - marginRight
+    123	0182  77 2E		     ja	setBlackD
+    124	0184  74 26		     je	setRDcorner
+    125
+    126	0186  83 F9 07		     cmp cx, marginLeft
+    127	0189  77 15		     ja	setHborderD
+    128	018B  74 19		     je	setLDcorner
+    129	018D  72 23		     jb	setBlackD
+    130
+    131	018F			     backDown:
+    132
+    133	018F  26: 89 05		     mov es:[di], ax
+    134	0192  83 C7 02		     add di, 2d
+    135	0195  83 C1 01		     add cx, 1
+    136	0198  83 F9 50		     cmp cx, scrLen
+    137	019B  72 E2		     jb	downString
+    138	019D  E8 FF75		     call verticleLoop
+    139	01A0			     endp
+    140
+    141	01A0			     setHborderD:
+    142	01A0  A1 0004r		     mov ax, styleStr[4h]
+    143	01A3  E8 FFE9		     call backDown
+    144
+    145	01A6			     setLDcorner:
+    146	01A6  A1 000Er		     mov ax, styleStr[14d]
+    147	01A9  E8 FFE3		     call backDown
+    148
+    149	01AC			     setRDcorner:
+    150	01AC  A1 000Cr		     mov ax, styleStr[12d]
+    151	01AF  E8 FF80		     call backUp
+    152
+    153	01B2			     setBlackD:
+    154	01B2  A1 0000r		     mov ax, styleStr[0d]
+    155	01B5  E8 FFD7		     call backDown
+    156
+    157
+    158				     ; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    159				     ; #brief
+    160				     ; set one string in videosegment as window-string
+    161				     ;
+    162				     ; #input
+    163				     ; ax - color
+    164				     ; bx - string-index in video segment
+    165				     ; cx - counter
+    166				     ; es - ptr	to video segment
+    167				     ; di - index in string (in	video segment)
+    168				     ;
+    169				     ; #destroy	list
+    170				     ; ax, bx, cx, es, di
+    171				     ; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Turbo Assembler	 Version 4.1	    02/14/22 03:31:04	    Page 4
+1frame.asm
+
+
+
+    172
+    173	01B8			     windowSting proc
+    174	01B8  A1 0002r		     mov ax, styleStr[2d]
+    175	01BB  83 F9 49		     cmp cx, scrLen - marginRight
+    176	01BE  77 28		     ja	setBlackW
+    177	01C0  74 1A		     je	verticalBorder
+    178
+    179	01C2  83 F9 07		     cmp cx, marginLeft
+    180	01C5  77 1B		     ja	setWindow
+    181	01C7  74 13		     je	verticalBorder
+    182	01C9  72 1D		     jb	setBlackW
+    183
+    184	01CB			     backWindow:
+    185
+    186	01CB  26: 89 05		     mov es:[di], ax
+    187	01CE  83 C7 02		     add di, 2d
+    188	01D1  83 C1 01		     add cx, 1
+    189	01D4  83 F9 50		     cmp cx, scrLen
+    190	01D7  72 DF		     jb	windowSting
+    191	01D9  E8 FF39		     call verticleLoop
+    192	01DC			     endp
+    193
+    194	01DC			     verticalBorder:
+    195	01DC  A1 0006r		     mov ax, styleStr[6d]
+    196	01DF  E8 FFE9		     call backWindow
+    197
+    198	01E2			     setWindow:
+    199	01E2  A1 0002r		     mov ax, styleStr[2d]
+    200	01E5  E8 FFE3		     call backWindow
+    201
+    202	01E8			     setBlackW:
+    203	01E8  A1 0000r		     mov ax, styleStr[0d]
+    204	01EB  E8 FFDD		     call backWindow
+    205
+    206	01EE			     .data
+    207	0000  0000 1000	1FCD 1FBA +  styleStr dw 00000h, 01000h, 01fcdh, 01fbah, 01Fc9h, 01fbbh, 01fbch, 01fc8h
+    208	      1FC9 1FBB	1FBC 1FC8
+    209				     ; #1 black	background
+    210				     ; #2 window background
+    211				     ; #3 horisontal border
+    212				     ; #4 vertical border
+    213				     ; #5 left upper corner
+    214				     ; #6 right	upper corner
+    215				     ; #7 right	down corner
+    216				     ; #8 left down corner
+    217
+    218				     end start
+Turbo Assembler	 Version 4.1	    02/14/22 03:31:04	    Page 5
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "02/14/22"
+??FILENAME			  Text	 "1frame  "
+??TIME				  Text	 "03:31:04"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _DATA
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 1FRAME
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+BACKDOWN			  Near	 DGROUP:018F
+BACKUP				  Near	 DGROUP:0132
+BACKWINDOW			  Near	 DGROUP:01CB
+CHOOSESTRING			  Near	 DGROUP:0155
+DOWNSTRING			  Near	 DGROUP:017F
+EMPTYSTRING			  Near	 DGROUP:0165
+ENDIAN				  Near	 DGROUP:010C
+HORIZONTALBORDER		  Near	 DGROUP:0149
+LEFTUPCORNER			  Near	 DGROUP:014F
+MARGINDOWN			  Number 0004
+MARGINLEFT			  Number 0007
+MARGINRIGHT			  Number 0007
+MARGINTOP			  Number 0005
+SCRHIGH				  Number 0018
+SCRLEN				  Number 0050
+SETBLACK			  Near	 DGROUP:0143
+SETBLACKD			  Near	 DGROUP:01B2
+SETBLACKW			  Near	 DGROUP:01E8
+SETHBORDERD			  Near	 DGROUP:01A0
+SETLDCORNER			  Near	 DGROUP:01A6
+SETRDCORNER			  Near	 DGROUP:01AC
+SETRUCORNER			  Near	 DGROUP:0179
+SETWINDOW			  Near	 DGROUP:01E2
+START				  Near	 DGROUP:0100
+STYLESTR			  Word	 DGROUP:0000
+UPSTRING			  Near	 DGROUP:0122
+VERTICALBORDER			  Near	 DGROUP:01DC
+VERTICLELOOP			  Near	 DGROUP:0115
+WINDOWSTING			  Near	 DGROUP:01B8
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0010 Word	  Public  DATA
+  _TEXT				  16  01EE Word	  Public  CODE
+
