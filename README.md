@@ -12,4 +12,5 @@ First, I learned registers and wrote a simple program to fill a [strings](https:
 
 ## Thanks!
 I will be glad to your issue
+
 Krapchatov Michael, 22
