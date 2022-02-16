@@ -1,4 +1,4 @@
-# frame - first project in the second semester
+# frame - first asm project
 💻 Simple frame in dosbox
 This is my first project on assembly. I learned addressing, registers, stack and array access, some instructions like [stos](https://faydoc.tripod.com/cpu/stosw.htm)
 
