@@ -50,7 +50,7 @@ start:
 		mov ax, 14d				; #down skip correction
 		mov [bx + 20d], ax
 
-		mov ax, 30d				; #down skip correction
+		mov ax, 30d				; #left skip correction
 		mov [bx + 22d], ax
 	pop ax
 	; ##########################################
