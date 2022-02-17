@@ -23,43 +23,124 @@ start:
 		mov ax, 00000h
 		mov [bx + 0d], ax		; #outside bg
 
-		mov ax, 01f00h
+		mov ax, 00f00h
 		mov [bx + 2d], ax		; #window bg
 
-		mov ax, 01fcdh
+		mov ax, 00fcdh
 		mov [bx + 4d], ax		; #hor. border
 		
-		mov ax, 01fbah
+		mov ax, 00fbah
 		mov [bx + 6d], ax		; #ver. border
 		
-		mov ax, 01fc9h
+		mov ax, 00fc9h
 		mov [bx + 8d], ax		; #lu corner
 		
-		mov ax, 01fbbh
+		mov ax, 00fbbh
 		mov [bx + 10d], ax		; #ru corner
 
-		mov ax, 01fbch
+		mov ax, 00fbch
 		mov [bx + 12d], ax		; #rd corner
 
-		mov ax, 01fc8h
+		mov ax, 00fc8h
 		mov [bx + 14d], ax		; #ld corner
 
-		mov ax, 40d				; #right skip correction
+		mov ax, 30d				; #right skip correction
 		mov [bx + 18d], ax
 
 		mov ax, 14d				; #down skip correction
 		mov [bx + 20d], ax
+
+		mov ax, 30d				; #down skip correction
+		mov [bx + 22d], ax
 	pop ax
 	; ##########################################
 
 	call animation
-	;call drowScreen
+	call addInfo
+	call addInst
 	call inputWriting
 	call abort
 
 
 
 
+
+addInfo proc
+	push dx
+	push ax
+	push bx
+	push di
+	; #=====================
+	mov di, (20d * 80d + 18d) * 2d
+
+	mov ax, [bx + 2d]
+	mov bx, offset message
+	mov al, [bx]
+	cld
+
+	symbol:
+	cmp al, 0
+	je final
+
+	stosw
+
+	inc bx
+
+	mov al, [bx]
+	jmp symbol
+
+
+	; #=====================
+	final:
+	pop di
+	pop bx
+	pop ax
+	pop dx
+	ret
+endp
+
+addInst proc
+	push dx
+	push ax
+	push bx
+	push di
+	; #=====================
+	mov di, (19d * 80d + 18d) * 2d
+
+	mov ax, [bx + 2d]
+	mov bx, offset instruction
+	mov al, [bx]
+	cld
+
+	symbolInst:
+	cmp al, 0
+	je final
+
+	stosw
+
+	inc bx
+
+	mov al, [bx]
+	jmp symbolInst
+
+
+	; #=====================
+	finalInst:
+	pop di
+	pop bx
+	pop ax
+	pop dx
+	ret
+endp
+
+instruction db 'type something...', 0
+message db 'Version 0.1 Copyleft (c) 3022', 0
+
+
+; #=============================================#
+; #brief |generate animation of frame
+; #use:  |{ax, cx, di}[with save], 
+; #dest. |
 animation proc
 	push ax
 	push cx
@@ -77,6 +158,11 @@ animation proc
 	mov ax, [bx + 20d]
 	sub ax, 1d				; #down skip correction
 	mov [bx + 20d], ax
+
+	mov ax, [bx + 22d]
+	sub ax, 1d				; #down skip correction
+	mov [bx + 22d], ax
+
 
 	mov cx, 3h
 	;mov dx, 4050h
@@ -98,6 +184,7 @@ animation proc
 	pop ax
 	ret
 endp
+; #---------------------------------------------#
 
 
 ; #=============================================#
@@ -109,7 +196,7 @@ inputWriting proc
 	push di
 	; #-------------------- saving & prepare data
 
-	mov di, (80d * 8d + 16d) * 2d
+	mov di, (80d * 8d + 18d) * 2d
 	call nextChar
 
 	; #----------------------------- return data
@@ -178,18 +265,20 @@ endp
 ; #dest. |{di}
 erraseSymbol proc
 	push ax
-	mov al, 00h
-	mov es:[di], al
+	; #---------------
+	mov ax, [bx + 2d]
+	mov es:[di], ax
 	sub di, 2d
-	mov es:[di], al
+	mov es:[di], ax
+	; #----------------
+	;mov al, 00h
+	;mov es:[di], al
+	;sub di, 2d
+	;mov es:[di], al
 	pop ax
 	jmp a
 endp
 ; #---------------------------------------------#
-
-
-message:
-	db 'aboba comander$'
 
 
 ; #=============================================#
